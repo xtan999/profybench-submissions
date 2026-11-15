@@ -10,7 +10,7 @@ Official community task proposal & curation repository for **ProfyBench**, an of
 ## How to Contribute a New Task (如何提交新评测任务)
 
 ### Option A — Submit a Pre-Filled Issue (Recommended / 推荐：一键提交 GitHub Issue)
-1. Author and validate your task in the **ProfyBench Interactive Task Builder** (`/contribute`), or click **[New Task Proposal Issue](../../issues/new?template=task_proposal.md)** directly in this repository.
+1. Author and validate your task in the **ProfyBench Interactive Task Builder** (`/contribute`), or click **[New Task Proposal Issue](../../issues/new?labels=task-proposal)** directly in this repository.
 2. Ensure all **5 Curation Gates** pass (`<FAMILY>_<NNN>` unused ID, PII scrubbing, structured `[must_include]` / `[should_include]` checkpoints, strict generation–judge checkpoint non-leakage, and family diagnostic dimensions + Canary GUID).
 3. Submit the Issue. Our GitHub Actions bot automatically runs `scripts/validate_submission.py` against your JSON block and posts a 5-gate verification report on the Issue.
 

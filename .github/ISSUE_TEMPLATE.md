@@ -1,10 +1,3 @@
----
-name: ProfyBench Task Proposal
-about: Propose a new expert-service task for ProfyBench (validated automatically by CI)
-title: "[ProfyBench Task] ADV_021: Descriptive Task Title"
-labels: ["task-proposal"]
-assignees: ''
----
 
 ## Proposed ProfyBench Expert-Service Task
 
