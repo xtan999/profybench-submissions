@@ -1,0 +1,109 @@
+name: Validate ProfyBench Submissions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  validate-files:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate example & submitted task JSONs
+        run: |
+          shopt -s globstar nullglob
+          files=(examples/*.json submissions/**/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No JSON files found to validate."
+            exit 0
+          fi
+          python3 scripts/validate_submission.py "${files[@]}"
+
+  validate-issue-proposal:
+    if: >-
+      github.event_name == 'issues' &&
+      (startsWith(github.event.issue.title, '[ProfyBench Task]') ||
+       contains(github.event.issue.labels.*.name, 'task-proposal'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run 5-Gate Curation Validator on Issue Body
+        id: check
+        continue-on-error: true
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python3 scripts/validate_submission.py --from-issue-env --markdown-out /tmp/curation_report.md
+
+      - name: Post Curation Report & Status Label on Issue
+        uses: actions/github-script@v7
+        env:
+          GATE_OUTCOME: ${{ steps.check.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/curation_report.md', 'utf8');
+            const marker = '<!-- profybench-curation-bot -->';
+            const body = `${marker}\n${report}`;
+            const issue_number = context.issue.number;
+            const { owner, repo } = context.repo;
+
+            const existing = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+              per_page: 50,
+            });
+            const botComment = existing.data.find((c) => c.body && c.body.includes(marker));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+            const passed = process.env.GATE_OUTCOME === 'success';
+            const addLabel = passed ? 'validated-spec' : 'needs-revision';
+            const removeLabel = passed ? 'needs-revision' : 'validated-spec';
+
+            try {
+              await github.rest.issues.removeLabel({ owner, repo, issue_number, name: removeLabel });
+            } catch (_) {}
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: ['task-proposal', addLabel],
+            });

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xtan999/profybench-submissions/blob/main/schema/profybench-task.schema.json",
+  "title": "ProfyBench Task Instance Specification",
+  "type": "object",
+  "required": [
+    "canary",
+    "benchmark",
+    "task_id",
+    "title",
+    "family",
+    "domain_name",
+    "variant_type",
+    "risk_level",
+    "language",
+    "source_category",
+    "contributor",
+    "context_slots",
+    "generation_input",
+    "judge_specification"
+  ],
+  "properties": {
+    "canary": {
+      "const": "PROFYBENCH-CANARY-GUID-2611-04483-DO-NOT-INCLUDE-IN-TRAINING-CORPORA"
+    },
+    "benchmark": {
+      "const": "ProfyBench"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^(ADV|EDU|MKT|MMW|PER)_[0-9]{3}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 6
+    },
+    "family": {
+      "type": "string",
+      "enum": ["ADV", "EDU", "MKT", "MMW", "PER"]
+    },
+    "domain_name": {
+      "type": "string"
+    },
+    "variant_type": {
+      "type": "string",
+      "enum": ["complete", "missing_info", "adversarial"]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "language": {
+      "type": "string",
+      "enum": ["zh", "en"]
+    },
+    "source_category": {
+      "type": "string",
+      "enum": ["public_replay_seed", "controlled_internal_test"]
+    },
+    "contributor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context_slots": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "generation_input": {
+      "type": "object",
+      "required": ["user_prompt", "expose_checkpoints_to_generator"],
+      "properties": {
+        "user_prompt": {
+          "type": "string",
+          "minLength": 30
+        },
+        "expose_checkpoints_to_generator": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "judge_specification": {
+      "type": "object",
+      "required": [
+        "general_dimensions",
+        "family_dimensions",
+        "expected_checkpoints",
+        "judge_max_tokens",
+        "require_output_sha256"
+      ],
+      "properties": {
+        "general_dimensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 5
+        },
+        "family_dimensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "expected_checkpoints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 3
+        },
+        "judge_max_tokens": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "require_output_sha256": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
